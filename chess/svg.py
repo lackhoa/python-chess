@@ -46,6 +46,7 @@ PIECES = {
     "R": """<g id="white-rook" class="white rook" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt"/><path d="M34 14l-3 3H14l-3-3"/><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M31 29.5l1.5 2.5h-20l1.5-2.5"/><path d="M11 14h23" fill="none" stroke-linejoin="miter"/></g>"""
 }
 
+#Draw an "X"
 XX = """<g id="xx" style="fill:none; stroke:#000000; stroke-width:2; stroke-opacity:1; stroke-linecap:round;stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none;"><path d="M 30,30 L 15,15" /><path d="M 30,15 L 15,30" /></g>"""
 
 CHECK_GRADIENT = """<radialGradient id="check_gradient"><stop offset="0%" stop-color="#ff0000" stop-opacity="1.0" /><stop offset="50%" stop-color="#e70000" stop-opacity="1.0" /><stop offset="100%" stop-color="#9e0000" stop-opacity="0.0" /></radialGradient>"""
@@ -109,9 +110,9 @@ def piece(piece, size=None):
     return ET.tostring(svg).decode("utf-8")
 
 
-def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None):
+def board(board=None, squares=None, colored_squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None):
     """
-    Renders a board with pieces and/or selected squares as an SVG image.
+    Renders a board with pieces and/or selected squares (with colors) as an SVG image.
 
     :param board: A :class:`chess.BaseBoard` for a chessboard with pieces or
         ``None`` (the default) for a chessboard without pieces.
@@ -145,6 +146,7 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
     if style:
         ET.SubElement(svg, "style").text = style
 
+    #defs is an element that contains the definitions for all the groups, pieces, the X's...
     defs = ET.SubElement(svg, "defs")
     if board:
         for color in chess.COLORS:
@@ -152,14 +154,17 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
                 if board.pieces_mask(piece_type, color):
                     defs.append(ET.fromstring(PIECES[chess.Piece(piece_type, color).symbol()]))
     if squares:
-        defs.append(ET.fromstring(XX))
+        defs.append(ET.fromstring(XX)) #Load the definition of the crosses for square highlighting
     if check is not None:
         defs.append(ET.fromstring(CHECK_GRADIENT))
 
+    #Enumerate over the squares and their binary notation
     for square, bb in enumerate(chess.BB_SQUARES):
+        #Take the file (column) and the rank (row of the square)
         file_index = chess.square_file(square)
         rank_index = chess.square_rank(square)
 
+        #Get the absolute coordinates based on the file and rank of the square
         x = (file_index if not flipped else 7 - file_index) * SQUARE_SIZE + margin
         y = (7 - rank_index if not flipped else rank_index) * SQUARE_SIZE + margin
 
@@ -199,11 +204,24 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
                 })
 
         # Render selected squares.
+        # squares & bb is the check if the square matches the current board postion
         if squares is not None and squares & bb:
-            ET.SubElement(svg, "use", {
+            ET.SubElement(svg, "use", { #The <use> tag duplicates the xx (cross) element"
                 "xlink:href": "#xx",
                 "x": str(x),
                 "y": str(y),
+            })
+
+        # Render colored squres
+        if colored_squares is not None and colored_squares & bb:
+            ET.SubElement(svg, "rect", {
+                "x": str(x),
+                "y": str(y),
+                "width": str(SQUARE_SIZE),
+                "height": str(SQUARE_SIZE),
+                "class": "check",
+                "fill": "yellow",
+                "opacity": "0.5",
             })
 
     if coordinates:
