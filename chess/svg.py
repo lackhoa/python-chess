@@ -110,7 +110,7 @@ def piece(piece, size=None):
     return ET.tostring(svg).decode("utf-8")
 
 
-def board(board=None, squares=None, colored_squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None):
+def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None, colored_squares=None):
     """
     Renders a board with pieces and/or selected squares (with colors) as an SVG image.
 
@@ -128,6 +128,7 @@ def board(board=None, squares=None, colored_squares=None, flipped=False, coordin
     :param size: The size of the image in pixels (e.g., ``400`` for a 400 by
         400 board) or ``None`` (the default) for no size limit.
     :param style: A CSS stylesheet to include in the SVG image.
+    :param colored_squares: A list of 2-tuple of type (SquareSet x string): [(squares_1, color1), (squares_2, color2)...]
 
     >>> import chess
     >>> import chess.svg
@@ -213,16 +214,18 @@ def board(board=None, squares=None, colored_squares=None, flipped=False, coordin
             })
 
         # Render colored squres
-        if colored_squares is not None and colored_squares & bb:
-            ET.SubElement(svg, "rect", {
-                "x": str(x),
-                "y": str(y),
-                "width": str(SQUARE_SIZE),
-                "height": str(SQUARE_SIZE),
-                "class": "check",
-                "fill": "yellow",
-                "opacity": "0.5",
-            })
+        if colored_squares is not None:
+            for cs in colored_squares:
+                if cs[0] & bb:
+                    ET.SubElement(svg, "rect", {
+                        "x": str(x),
+                        "y": str(y),
+                        "width": str(SQUARE_SIZE),
+                        "height": str(SQUARE_SIZE),
+                        "class": "check",
+                        "fill": cs[1], # cs[1] indicates the color
+                        "opacity": "0.5",
+                    })
 
     if coordinates:
         for file_index, file_name in enumerate(chess.FILE_NAMES):
