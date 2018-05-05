@@ -51,6 +51,7 @@ XX = """<g id="xx" style="fill:none; stroke:#000000; stroke-width:2; stroke-opac
 
 CHECK_GRADIENT = """<radialGradient id="check_gradient"><stop offset="0%" stop-color="#ff0000" stop-opacity="1.0" /><stop offset="50%" stop-color="#e70000" stop-opacity="1.0" /><stop offset="100%" stop-color="#9e0000" stop-opacity="0.0" /></radialGradient>"""
 
+# Color for the squares with no pieces
 DEFAULT_COLORS = {
     "square light": "#ffce9e",
     "square dark": "#d18b47",
@@ -110,13 +111,13 @@ def piece(piece, size=None):
     return ET.tostring(svg).decode("utf-8")
 
 
-def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None, colored_squares=None):
+def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=None, check=None, arrows=(), size=None, style=None, colored_squares=None, protected_squares=None):
     """
     Renders a board with pieces and/or selected squares (with colors) as an SVG image.
 
     :param board: A :class:`chess.BaseBoard` for a chessboard with pieces or
         ``None`` (the default) for a chessboard without pieces.
-    :param squares: A :class:`chess.SquareSet` with selected squares.
+    :param squares: A :class:`chess.SquareSet` with selected squares to be highlighted with crosses.
     :param flipped: Pass ``True`` to flip the board.
     :param coordinates: Pass ``False`` to disable coordinates in the margin.
     :param lastmove: A :class:`chess.Move` to be highlighted.
@@ -128,7 +129,8 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
     :param size: The size of the image in pixels (e.g., ``400`` for a 400 by
         400 board) or ``None`` (the default) for no size limit.
     :param style: A CSS stylesheet to include in the SVG image.
-    :param colored_squares: A list of 2-tuple of type (SquareSet x string): [(squares_1, color1), (squares_2, color2)...]
+    :param colored_squares: A list of 2-tuple of type (chess.SquareSet x string): [(squares_1, color1), (squares_2, color2)...]
+    :param protected_squares: A list of chess.SquareSet to be highlighted as protected
 
     >>> import chess
     >>> import chess.svg
@@ -222,9 +224,20 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
                         "y": str(y),
                         "width": str(SQUARE_SIZE),
                         "height": str(SQUARE_SIZE),
-                        "class": "check",
                         "fill": cs[1], # cs[1] indicates the color
                         "opacity": "0.5",
+                    })
+
+        # Render protected squres
+        if protected_squares is not None:
+            for ps in protected_squares:
+                if ps & bb:
+                    ET.SubElement(svg, "circle", {
+                        "cx": str(x + SQUARE_SIZE/2),
+                        "cy": str(y + SQUARE_SIZE/2),
+                        "r": str(SQUARE_SIZE/2),
+                        "stroke": "black",
+                        "fill": "none",
                     })
 
     if coordinates:
@@ -256,7 +269,7 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
                 "stroke-width": str(SQUARE_SIZE * 0.1),
                 "stroke": "#888",
                 "fill": "none",
-                "opacity": "0.5",
+                "opacity": "0.8",
             })
         else:
             marker_size = 0.75 * SQUARE_SIZE
@@ -278,7 +291,7 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
                 "y2": str(shaft_y),
                 "stroke": "#888",
                 "stroke-width": str(SQUARE_SIZE * 0.2),
-                "opacity": "0.5",
+                "opacity": "0.8",
                 "stroke-linecap": "butt",
                 "class": "arrow",
             })
@@ -293,7 +306,7 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
             ET.SubElement(svg, "polygon", {
                 "points": " ".join(str(x) + "," + str(y) for x, y in marker),
                 "fill": "#888",
-                "opacity": "0.5",
+                "opacity": "0.8",
                 "class": "arrow",
             })
 
