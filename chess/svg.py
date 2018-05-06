@@ -230,15 +230,14 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
 
         # Render protected squres
         if protected_squares is not None:
-            for ps in protected_squares:
-                if ps & bb:
-                    ET.SubElement(svg, "circle", {
-                        "cx": str(x + SQUARE_SIZE/2),
-                        "cy": str(y + SQUARE_SIZE/2),
-                        "r": str(SQUARE_SIZE/2),
-                        "stroke": "black",
-                        "fill": "none",
-                    })
+            if protected_squares & bb:
+                ET.SubElement(svg, "circle", {
+                    "cx": str(x + SQUARE_SIZE/2),
+                    "cy": str(y + SQUARE_SIZE/2),
+                    "r": str(SQUARE_SIZE/2),
+                    "stroke": "green",
+                    "fill": "none",
+                })
 
     if coordinates:
         for file_index, file_name in enumerate(chess.FILE_NAMES):
