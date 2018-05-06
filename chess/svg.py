@@ -54,7 +54,7 @@ CHECK_GRADIENT = """<radialGradient id="check_gradient"><stop offset="0%" stop-c
 # Color for the squares with no pieces
 DEFAULT_COLORS = {
     "square light": "#ffce9e",
-    "square dark": "#d18b47",
+    "square dark": "#ffce9e", #(#d18b47)
     "square dark lastmove": "#aaa23b",
     "square light lastmove": "#cdd16a",
 }
@@ -183,7 +183,7 @@ def board(board=None, squares=None, flipped=False, coordinates=True, lastmove=No
             "width": str(SQUARE_SIZE),
             "height": str(SQUARE_SIZE),
             "class": " ".join(cls),
-            "stroke": "none",
+            "stroke": "black",
             "fill": fill_color,
         })
 
